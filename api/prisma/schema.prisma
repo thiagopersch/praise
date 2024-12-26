@@ -1,0 +1,366 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model user {
+  id              String         @id @default(uuid())
+  name            String
+  login           String         @unique
+  password        String
+  change_password Boolean        @default(true)
+  status          Boolean        @default(true)
+  created_at      DateTime       @default(now())
+  updated_at      DateTime       @updatedAt
+  deleted_at      DateTime
+  gperson         person[]
+  user_profile    user_profile[]
+}
+
+model profile {
+  id           String         @id @default(uuid())
+  code         String
+  name         String
+  description  String?
+  status       Boolean        @default(true)
+  created_at   DateTime       @default(now())
+  updated_at   DateTime       @updatedAt
+  deleted_at   DateTime
+  permission   permission[]
+  user_profile user_profile[]
+}
+
+model permission {
+  id         String   @id @default(uuid())
+  profile    profile  @relation(fields: [profile_id], references: [id])
+  profile_id String
+  name       String
+  type       String // 'CREATE', 'READ', 'UPDATE', 'DELETE'
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  deleted_at DateTime
+}
+
+model user_profile {
+  id         String   @id @default(uuid())
+  user       user     @relation(fields: [user_id], references: [id])
+  user_id    String
+  profile    profile  @relation(fields: [profile_id], references: [id])
+  profile_id String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  deleted_at DateTime
+}
+
+model person {
+  id         String   @id @default(uuid())
+  user       user     @relation(fields: [user_id], references: [id])
+  user_id    String
+  image      String?
+  name       String
+  cpf        String
+  birth_date String
+  email      String
+  phone_one  String
+  phone_two  String
+  sex        String
+  cep        String
+  street     String
+  number     String
+  complement String?
+  city       String
+  state      String
+  country    String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  deleted_at DateTime
+  church     church[]
+  member     member[]
+  family     family[]
+}
+
+model church {
+  id         String   @id @default(uuid())
+  person     person   @relation(fields: [person_id], references: [id])
+  person_id  String
+  logo       String?
+  favicon    String?
+  background String?
+  color      String?
+  name       String
+  cnpj       String
+  cep        String
+  street     String
+  number     String
+  complement String?
+  district   String
+  city       String
+  state      String
+  country    String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  deleted_at DateTime
+  member     member[]
+  events     events[]
+  guest      guest[]
+}
+
+model occupations {
+  id          String        @id @default(uuid())
+  name        String
+  description String
+  status      Boolean       @default(true)
+  created_at  DateTime      @default(now())
+  updated_at  DateTime      @updatedAt
+  deleted_at  DateTime
+  ordinations ordinations[]
+}
+
+model event_types {
+  id          String   @id @default(uuid())
+  name        String
+  description String
+  status      Boolean  @default(true)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  deleted_at  DateTime
+  events      events[]
+}
+
+model member_origins {
+  id          String   @id @default(uuid())
+  name        String
+  description String
+  status      Boolean  @default(true)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  deleted_at  DateTime
+  member      member[]
+}
+
+model aux_civil_status {
+  id         String   @id @default(uuid())
+  code       String
+  name       String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  deleted_at DateTime
+  member     member[]
+}
+
+model aux_color_race {
+  id         String   @id @default(uuid())
+  code       String
+  name       String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  deleted_at DateTime
+  member     member[]
+}
+
+model aux_formation {
+  id         String   @id @default(uuid())
+  code       String
+  name       String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  deleted_at DateTime
+  member     member[]
+}
+
+model aux_kinship {
+  id         String   @id @default(uuid())
+  code       String
+  name       String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  deleted_at DateTime
+  family     family[]
+}
+
+model aux_member_situation {
+  id            String          @id @default(uuid())
+  code          String
+  name          String //'Membro ativo', 'Frequentador', 'Membro em disciplina', 'Inativo', 'Falecido'
+  created_at    DateTime        @default(now())
+  updated_at    DateTime        @updatedAt
+  deleted_at    DateTime
+  status_member status_member[]
+}
+
+model nationality {
+  id         String   @id @default(uuid())
+  code       String
+  name       String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  deleted_at DateTime
+  member     member[]
+}
+
+model member {
+  id                       String           @id @default(uuid())
+  person                   person           @relation(fields: [person_id], references: [id])
+  person_id                String
+  church                   church           @relation(fields: [church_id], references: [id])
+  church_id                String
+  rg                       String
+  issuing_body             String
+  civil_status             aux_civil_status @relation(fields: [civil_status_id], references: [id])
+  civil_status_id          String
+  nationality              nationality      @relation(fields: [nationality_id], references: [id])
+  nationality_id           String
+  naturalness              String?
+  colo_race                aux_color_race   @relation(fields: [color_race_id], references: [id])
+  color_race_id            String
+  formation                aux_formation    @relation(fields: [formation_id], references: [id])
+  formation_id             String
+  formation_course         String?
+  profission               String?
+  def_physical             String?
+  def_visual               String?
+  def_hearing              String?
+  def_intellectual         String?
+  def_mental               String?
+  def_multiple             String?
+  def_other                String?
+  def_other_description    String?
+  baptism_date             String
+  baptism_locale           String
+  baptism_official         String
+  baptism_holy_spirit      String
+  baptism_holy_spirit_date String
+  receipt_date             String
+  member_origin            member_origins   @relation(fields: [member_origin_id], references: [id])
+  member_origin_id         String
+  created_at               DateTime         @default(now())
+  updated_at               DateTime         @updatedAt
+  deleted_at               DateTime
+  family                   family[]
+  ordinations              ordinations[]
+  status_member            status_member[]
+  history_member           history_member[]
+  guest                    guest[]
+  event_leader             event_leader[]
+}
+
+model guest {
+  id         String   @id @default(uuid())
+  member     member   @relation(fields: [member_id], references: [id])
+  member_id  String
+  church     church   @relation(fields: [church_id], references: [id])
+  church_id  String
+  name       String
+  phone      String
+  cep        String
+  street     String
+  number     String
+  complement String?
+  district   String
+  city       String
+  state      String
+  country    String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  deleted_at DateTime
+}
+
+model family {
+  id         String      @id @default(uuid())
+  member     member      @relation(fields: [member_id], references: [id])
+  member_id  String
+  person     person      @relation(fields: [person_id], references: [id])
+  person_id  String
+  kinship    aux_kinship @relation(fields: [kinship_id], references: [id])
+  kinship_id String
+  name       String?
+  is_member  Boolean     @default(true)
+  created_at DateTime    @default(now())
+  updated_at DateTime    @updatedAt
+  deleted_at DateTime
+}
+
+model ordinations {
+  id            String      @id @default(uuid())
+  member        member      @relation(fields: [member_id], references: [id])
+  member_id     String
+  occupation    occupations @relation(fields: [occupation_id], references: [id])
+  occupation_id String
+  initial_date  DateTime
+  end_date      DateTime
+  status        Boolean     @default(true)
+  created_at    DateTime    @default(now())
+  updated_at    DateTime    @updatedAt
+  deleted_at    DateTime
+}
+
+model status_member {
+  id                  String               @id @default(uuid())
+  member              member               @relation(fields: [member_id], references: [id])
+  member_id           String
+  member_situation    aux_member_situation @relation(fields: [member_situation_id], references: [id])
+  member_situation_id String
+  initial_period      DateTime
+  final_period        DateTime
+  created_at          DateTime             @default(now())
+  updated_at          DateTime             @updatedAt
+  deleted_at          DateTime
+}
+
+model history_member {
+  id          String   @id @default(uuid())
+  member      member   @relation(fields: [member_id], references: [id])
+  member_id   String
+  before      String
+  after       String
+  change_date DateTime
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  deleted_at  DateTime
+}
+
+model event_type {
+  id          String   @id @default(uuid())
+  church_id   String
+  name        String
+  description String
+  status      Boolean
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  deleted_at  DateTime
+}
+
+model events {
+  id            String         @id @default(uuid())
+  church        church         @relation(fields: [church_id], references: [id])
+  church_id     String
+  event_type    event_types    @relation(fields: [event_type_id], references: [id])
+  event_type_id String
+  name          String
+  observation   String
+  created_at    DateTime       @default(now())
+  updated_at    DateTime       @updatedAt
+  deleted_at    DateTime
+  event_leader  event_leader[]
+}
+
+model event_leader {
+  id         String   @id @default(uuid())
+  member     member   @relation(fields: [member_id], references: [id])
+  member_id  String
+  event      events   @relation(fields: [event_id], references: [id])
+  event_id   String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  deleted_at DateTime
+}
